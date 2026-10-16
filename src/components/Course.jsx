@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 function FreeCourse({courses}) {
   return (
@@ -35,7 +35,7 @@ function PaidCourse({courses}) {
 }
 
 function Course() {
-  const freeCourse = [
+  const [freeCourse] = useState( [
     {
       id: 1,
       title: "HTML CSS",
@@ -46,9 +46,9 @@ function Course() {
       title: "JavaScript",
       name: "Jane Doe",
     }
-  ];
+  ]);
 
-  const paidCourse=[
+  const [paidCourse] = useState([
     {
       id:1,
       title:"React JS",
@@ -60,11 +60,13 @@ function Course() {
       title:"Node JS",
       name:"Ali",
     }
-  ]
+  ]);
+
+    
   return (
     <>
+      <h1>Course!</h1>
       <PaidCourse courses={paidCourse}/>
-      <div>Course!</div>
       <FreeCourse courses={freeCourse}/>
     </>
   );

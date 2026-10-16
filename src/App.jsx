@@ -3,15 +3,16 @@ import Home from "./components/Home";
 import Login from "./components/Login";
 import Course from "./components/Course";
 import Signup from "./components/Signup";
+import Bonus from "./components/Bonus";
 
 function App() {
-  const age=10; // JavaScript
   return (
     <Routes>
-      <Route path="/" element={<Home name="Hamza" age={age} />} />
+      <Route path="/" element={<Home name="Hamza" />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/course" element={<Course />} />
+      <Route path="/courses" element={<Course />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/bonus" element={<Bonus />} />
     </Routes>
   );
 }
