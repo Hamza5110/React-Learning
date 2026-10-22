@@ -29,7 +29,7 @@ function App() {
       // It is Logical and operator
       {user && (
         <>
-          <Route path="/" element={<Home name="Hamza" />} />
+          <Route path="/" element={<Home />} />
           <Route path="/courses" element={<Course />} />
           <Route path="/list" element={<List />} />
         </>
