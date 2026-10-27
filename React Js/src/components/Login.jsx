@@ -1,17 +1,57 @@
-import { Link } from 'react-router-dom';
+﻿import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
-    return (
-        <div className='flex items-center justify-center h-screen bg-slate-100'>
-            <div className='bg-white w-80 p-6 rounded-xl shadow-lg'>
-                <h2 className='text-2xl font-bold text-center mb-5'>Login</h2>
-                <input type="text" placeholder='Email' className='w-full border p-2 rounded mb-4' />
-                <input type="password" placeholder='Password' className='w-full border p-2 rounded mb-4' />
-                <button className='bg-blue-500 text-white rounded-md px-4 w-full py-2 hover:bg-blue-600 transition duration-300'>Login</button>
-                <p className='text-center mt-3'>New Account? { " " } <Link className='text-blue-600 hover:underline' to='/signup'>Signup</Link></p>
-            </div>
-        </div>
-    );
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Login failed");
+      login(data.token, data.user);
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center h-screen bg-slate-100">
+      <form onSubmit={handleSubmit} className="bg-white w-80 p-6 rounded-xl shadow-lg">
+        <h2 className="text-2xl font-bold text-center mb-5">Login</h2>
+        {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+        <input name="email" value={form.email} onChange={handleChange}
+          type="email" placeholder="Email" className="w-full border p-2 rounded mb-4" required />
+        <input name="password" value={form.password} onChange={handleChange}
+          type="password" placeholder="Password" className="w-full border p-2 rounded mb-4" required />
+        <button disabled={loading} className="bg-blue-500 text-white rounded-md px-4 w-full py-2 hover:bg-blue-600">
+          {loading ? "Logging in..." : "Login"}
+        </button>
+        <p className="text-center mt-3">
+          New Account? <Link className="text-blue-600 hover:underline" to="/signup">Signup</Link>
+        </p>
+      </form>
+    </div>
+  );
 }
 
-export default Login
+export default Login;

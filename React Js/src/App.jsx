@@ -1,41 +1,30 @@
-import { Routes, Route } from "react-router-dom";
+﻿import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./components/Home";
 import Login from "./components/Login";
 import Course from "./components/Course";
 import Signup from "./components/Signup";
-import Bonus from "./components/Bonus";
-import Now from "./components/Now";
-import Event from "./components/Event";
-import Form from "./components/Form";
 import List from "./components/List";
+import { useAuth } from "./context/AuthContext";
 
 function App() {
-  const user = true;
+  const { isLoggedIn } = useAuth();
 
   return (
     <Routes>
-      // It is a ternary operator
-      {/* {user ? (
+      {isLoggedIn ? (
         <>
-          <Route path="/" element={<Home name="Hamza" />} />
+          <Route path="/" element={<Home />} />
           <Route path="/courses" element={<Course />} />
+          <Route path="/list" element={<List />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </>
       ) : (
         <>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-        </>
-      )} */} 
-      // It is Logical and operator
-      {user && (
-        <>
-          <Route path="/" element={<Home />} />
-          <Route path="/courses" element={<Course />} />
-          <Route path="/list" element={<List />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </>
       )}
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
     </Routes>
   );
 }
