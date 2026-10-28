@@ -36,18 +36,41 @@ function Login() {
 
   return (
     <div className="flex items-center justify-center h-screen bg-slate-100">
-      <form onSubmit={handleSubmit} className="bg-white w-80 p-6 rounded-xl shadow-lg">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white w-80 p-6 rounded-xl shadow-lg"
+      >
         <h2 className="text-2xl font-bold text-center mb-5">Login</h2>
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
-        <input name="email" value={form.email} onChange={handleChange}
-          type="email" placeholder="Email" className="w-full border p-2 rounded mb-4" required />
-        <input name="password" value={form.password} onChange={handleChange}
-          type="password" placeholder="Password" className="w-full border p-2 rounded mb-4" required />
-        <button disabled={loading} className="bg-blue-500 text-white rounded-md px-4 w-full py-2 hover:bg-blue-600">
+        <input
+          name="email"
+          value={form.email}
+          onChange={handleChange}
+          type="email"
+          placeholder="Email"
+          className="w-full border p-2 rounded mb-4"
+          required
+        />
+        <input
+          name="password"
+          value={form.password}
+          onChange={handleChange}
+          type="password"
+          placeholder="Password"
+          className="w-full border p-2 rounded mb-4"
+          required
+        />
+        <button
+          disabled={loading}
+          className="bg-blue-500 text-white rounded-md px-4 w-full py-2 hover:bg-blue-600"
+        >
           {loading ? "Logging in..." : "Login"}
         </button>
         <p className="text-center mt-3">
-          New Account? <Link className="text-blue-600 hover:underline" to="/signup">Signup</Link>
+          New Account?{" "}
+          <Link className="text-blue-600 hover:underline" to="/signup">
+            Signup
+          </Link>
         </p>
       </form>
     </div>

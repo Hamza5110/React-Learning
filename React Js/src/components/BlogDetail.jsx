@@ -1,0 +1,198 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
+import { useAuth } from "../context/AuthContext";
+import { deleteBlog, getBlogById, updateBlog } from "../api/blogApi";
+
+function BlogDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const [blog, setBlog] = useState(null);
+  const [form, setForm] = useState({ title: "", content: "", author: "" });
+  const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const loadBlog = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await getBlogById(id);
+        setBlog(data.blog);
+        setForm({
+          title: data.blog.title,
+          content: data.blog.content,
+          author: data.blog.author,
+        });
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadBlog();
+  }, [id]);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    try {
+      const data = await updateBlog(id, {
+        title: form.title.trim(),
+        content: form.content.trim(),
+        author: form.author.trim() || user?.username || "Anonymous",
+      });
+      setBlog(data.blog);
+      setEditing(false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm("Delete this blog permanently?");
+    if (!confirmed) return;
+
+    setSaving(true);
+    setError("");
+    try {
+      await deleteBlog(id);
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+      setSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <Navbar />
+      <section className="min-h-[70vh] bg-gray-100 py-10">
+        <div className="max-w-3xl mx-auto px-4">
+          <Link to="/" className="text-blue-600 hover:underline mb-6 inline-block">
+            &larr; Back to Home
+          </Link>
+
+          {loading && <p className="text-gray-500">Loading blog...</p>}
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+
+          {!loading && blog && !editing && (
+            <article className="bg-white p-6 rounded-xl shadow-lg">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {blog.title}
+              </h1>
+              <p className="text-sm text-gray-500 mb-6">
+                By {blog.author}
+                {blog.createdAt &&
+                  ` · ${new Date(blog.createdAt).toLocaleDateString()}`}
+              </p>
+              <p className="text-gray-700 whitespace-pre-wrap leading-relaxed mb-8">
+                {blog.content}
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={saving}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg disabled:opacity-60"
+                >
+                  Delete
+                </button>
+              </div>
+            </article>
+          )}
+
+          {!loading && blog && editing && (
+            <form
+              onSubmit={handleUpdate}
+              className="bg-white p-6 rounded-xl shadow-lg"
+            >
+              <h2 className="text-2xl font-bold mb-4">Edit Blog</h2>
+
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Title
+              </label>
+              <input
+                name="title"
+                value={form.title}
+                onChange={handleChange}
+                className="w-full border p-2 rounded mb-4"
+                required
+              />
+
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Author
+              </label>
+              <input
+                name="author"
+                value={form.author}
+                onChange={handleChange}
+                className="w-full border p-2 rounded mb-4"
+                required
+              />
+
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Content
+              </label>
+              <textarea
+                name="content"
+                value={form.content}
+                onChange={handleChange}
+                rows={10}
+                className="w-full border p-2 rounded mb-4 resize-y"
+                required
+              />
+
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-60"
+                >
+                  {saving ? "Saving..." : "Save Changes"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditing(false);
+                    setForm({
+                      title: blog.title,
+                      content: blog.content,
+                      author: blog.author,
+                    });
+                  }}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </section>
+      <Footer />
+    </>
+  );
+}
+
+export default BlogDetail;

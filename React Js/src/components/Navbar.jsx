@@ -21,6 +21,9 @@ function Navbar() {
               <Link to="/" className="text-gray-700 hover:text-blue-500 font-medium transition">
                 Home
               </Link>
+              <Link to="/blogs/new" className="text-gray-700 hover:text-blue-500 font-medium transition">
+                Create Blog
+              </Link>
               <Link to="/courses" className="text-gray-700 hover:text-blue-500 font-medium transition">
                 Courses
               </Link>
