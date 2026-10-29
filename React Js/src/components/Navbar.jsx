@@ -15,8 +15,7 @@ function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
-  const canCreateCourse =
-    user?.role === "instructor" || user?.role === "admin";
+  const canCreateCourse = user?.role === "instructor" || user?.role === "admin";
   const initials = (user?.username || user?.email || "U")
     .slice(0, 1)
     .toUpperCase();
@@ -46,7 +45,11 @@ function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        <Link to="/" onClick={closeMenus} className="flex items-center shrink-0">
+        <Link
+          to="/"
+          onClick={closeMenus}
+          className="flex items-center shrink-0"
+        >
           <img src={logo} alt="Blog Verse" className="w-70 h-40" />
         </Link>
 
@@ -102,7 +105,9 @@ function Navbar() {
                     <p className="text-sm font-semibold text-gray-800 truncate">
                       {user?.username}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {user?.email}
+                    </p>
                     <span className="mt-2 inline-block text-xs capitalize bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
                       {user?.role || "student"}
                     </span>
