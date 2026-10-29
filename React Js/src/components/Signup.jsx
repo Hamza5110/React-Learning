@@ -1,9 +1,15 @@
 ﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { signup } from "../api/blogApi";
 
 function Signup() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ username: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    role: "student",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -16,15 +22,8 @@ function Signup() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Signup Failed");
+      const data = await signup(form);
+      if (!data.success) throw new Error(data.message || "Signup Failed");
       navigate("/login");
     } catch (error) {
       setError(error.message);
@@ -69,6 +68,16 @@ function Signup() {
           required
           minLength={6}
         />
+        <select
+          name="role"
+          value={form.role}
+          onChange={handleChange}
+          className="w-full border p-2 rounded mb-4"
+          required
+        >
+          <option value="student">Student</option>
+          <option value="instructor">Instructor</option>
+        </select>
         <button
           disabled={loading}
           className="bg-blue-500 text-white rounded-md px-4 w-full py-2 hover:bg-blue-600"

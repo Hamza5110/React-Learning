@@ -1,13 +1,14 @@
 ﻿import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { login } from "../api/blogApi";
 
 function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login: loginContext } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,14 +19,9 @@ function Login() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Login failed");
-      login(data.token, data.user);
+      const data = await login(form);
+      if (!data.success) throw new Error(data.message || "Login failed");
+      loginContext(data.token, data.user);
       navigate("/");
     } catch (err) {
       setError(err.message);
