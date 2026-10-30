@@ -3,7 +3,14 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useAuth } from "../context/AuthContext";
-import { deleteBlog, getBlogById, updateBlog } from "../api/blogApi";
+import {
+  createComment,
+  deleteBlog,
+  deleteComment,
+  getBlogById,
+  getBlogComments,
+  updateBlog,
+} from "../api/blogApi";
 
 function BlogDetail() {
   const { id } = useParams();
@@ -16,6 +23,13 @@ function BlogDetail() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+  const [commentsError, setCommentsError] = useState("");
+  const [commentText, setCommentText] = useState("");
+  const [savingComment, setSavingComment] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState(null);
 
   useEffect(() => {
     const loadBlog = async () => {
@@ -37,12 +51,26 @@ function BlogDetail() {
     loadBlog();
   }, [id]);
 
+  useEffect(() => {
+    const loadComments = async () => {
+      setCommentsLoading(true);
+      setCommentsError("");
+      try {
+        const data = await getBlogComments(id);
+        setComments(data.comments || []);
+      } catch (err) {
+        setCommentsError(err.message);
+      } finally {
+        setCommentsLoading(false);
+      }
+    };
+    loadComments();
+  }, [id]);
+
   const isOwner =
     blog && String(blog.author?._id || blog.author) === String(user?.id);
   const isAdmin = user?.role === "admin";
   const canManage = isOwner || isAdmin;
-  const authorLabel =
-    blog?.authorName || blog?.author?.username || "Unknown";
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -81,6 +109,47 @@ function BlogDetail() {
     }
   };
 
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+
+    setSavingComment(true);
+    setCommentsError("");
+    try {
+      const data = await createComment(id, { content: commentText.trim() });
+      setComments((prev) => [data.comment, ...prev]);
+      setCommentText("");
+    } catch (err) {
+      setCommentsError(err.message);
+    } finally {
+      setSavingComment(false);
+    }
+  };
+
+  const handleDeleteComment = async (comment) => {
+    const commentId = comment._id;
+    const confirmed = window.confirm("Delete this comment?");
+    if (!confirmed) return;
+
+    setDeletingCommentId(commentId);
+    setCommentsError("");
+    try {
+      await deleteComment(id, commentId);
+      setComments((prev) =>
+        prev.filter((item) => String(item._id) !== String(commentId)),
+      );
+    } catch (err) {
+      setCommentsError(err.message);
+    } finally {
+      setDeletingCommentId(null);
+    }
+  };
+
+  const canDeleteComment = (comment) => {
+    const authorId = comment.author?._id || comment.author;
+    return isAdmin || String(authorId) === String(user?.id);
+  };
+
   return (
     <>
       <Navbar />
@@ -102,7 +171,7 @@ function BlogDetail() {
                 {blog.title}
               </h1>
               <p className="text-sm text-gray-500 mb-6">
-              By {blog.authorName || blog.author?.username || "Unknown"}
+                By {blog.authorName || blog.author?.username || "Unknown"}
                 {blog.createdAt &&
                   ` · ${new Date(blog.createdAt).toLocaleDateString()}`}
               </p>
@@ -185,6 +254,83 @@ function BlogDetail() {
                 </button>
               </div>
             </form>
+          )}
+
+          {!loading && blog && !editing && (
+            <section className="mt-8 bg-white p-6 rounded-xl shadow-lg">
+              <h2 className="text-2xl font-bold mb-4">
+                Comments ({comments.length})
+              </h2>
+
+              <form onSubmit={handleAddComment} className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Add a comment
+                </label>
+                <textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  rows={3}
+                  className="w-full border p-2 rounded mb-3 resize-y"
+                  placeholder="Share your thoughts..."
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={savingComment || !commentText.trim()}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-60"
+                >
+                  {savingComment ? "Posting..." : "Post Comment"}
+                </button>
+              </form>
+
+              {commentsLoading && (
+                <p className="text-gray-500">Loading comments...</p>
+              )}
+              {commentsError && (
+                <p className="text-red-500 mb-4">{commentsError}</p>
+              )}
+              {!commentsLoading && comments.length === 0 && !commentsError && (
+                <p className="text-gray-500">No comments yet. Be the first.</p>
+              )}
+
+              <ul className="space-y-4">
+                {comments.map((comment) => (
+                  <li
+                    key={comment._id}
+                    className="border border-gray-100 rounded-lg p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {comment.authorName ||
+                            comment.author?.username ||
+                            "User"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {comment.createdAt &&
+                            new Date(comment.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      {canDeleteComment(comment) && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteComment(comment)}
+                          disabled={deletingCommentId === comment._id}
+                          className="text-sm text-red-600 hover:text-red-700 disabled:opacity-60"
+                        >
+                          {deletingCommentId === comment._id
+                            ? "Deleting..."
+                            : "Delete"}
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-gray-700 whitespace-pre-wrap">
+                      {comment.content}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
         </div>
       </section>

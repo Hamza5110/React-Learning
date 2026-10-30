@@ -1,4 +1,5 @@
 import Blog from "../models/Blog.js";
+import Comment from "../models/Comment.js";
 
 const createBlog = async (req, res) => {
   try {
@@ -70,6 +71,7 @@ const deleteBlog = async (req, res) => {
       return res.status(403).json({ success: false, message: "You can only delete your own blogs" });
     }
 
+    await Comment.deleteMany({ blog: blog._id });
     await blog.deleteOne();
     res.status(200).json({ success: true, message: "Blog deleted" });
   } catch (err) {

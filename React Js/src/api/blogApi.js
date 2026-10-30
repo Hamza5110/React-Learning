@@ -66,6 +66,33 @@ export async function deleteBlog(id) {
   return handleResponse(res);
 }
 
+export async function getBlogComments(blogId) {
+  const res = await fetch(`${API_BASE}/blog/${blogId}/comments`, {
+    headers: authHeaders(),
+  });
+  return handleResponse(res);
+}
+
+export async function createComment(blogId, payload) {
+  const res = await fetch(`${API_BASE}/blog/${blogId}/comments`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteComment(blogId, commentId) {
+  const res = await fetch(
+    `${API_BASE}/blog/${blogId}/comments/${commentId}`,
+    {
+      method: "DELETE",
+      headers: authHeaders(),
+    },
+  );
+  return handleResponse(res);
+}
+
 export async function getAllCourses() {
   const res = await fetch(`${API_BASE}/course`, { headers: authHeaders() });
   return handleResponse(res);
