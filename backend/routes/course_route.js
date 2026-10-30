@@ -10,12 +10,41 @@ import {
   enrollInCourse,
   unenrollFromCourse,
 } from "../controller/course_controller.js";
+import {
+  getLessonsByCourse,
+  getLessonById,
+  createLesson,
+  updateLesson,
+  deleteLesson,
+} from "../controller/lesson_controller.js";
 
 const router = express.Router();
 
 router.post("/", protect, authorize("instructor", "admin"), createCourse);
 router.get("/", getCourses);
 router.get("/my", protect, authorize("student"), getMyCourses);
+
+router.get("/:slug/lessons", protect, getLessonsByCourse);
+router.get("/:slug/lessons/:lessonId", protect, getLessonById);
+router.post(
+  "/:slug/lessons",
+  protect,
+  authorize("instructor", "admin"),
+  createLesson,
+);
+router.put(
+  "/:slug/lessons/:lessonId",
+  protect,
+  authorize("instructor", "admin"),
+  updateLesson,
+);
+router.delete(
+  "/:slug/lessons/:lessonId",
+  protect,
+  authorize("instructor", "admin"),
+  deleteLesson,
+);
+
 router.get("/:slug", getCourseBySlug);
 router.put("/:slug", protect, authorize("instructor", "admin"), updateCourse);
 router.delete("/:slug", protect, authorize("admin"), deleteCourse);

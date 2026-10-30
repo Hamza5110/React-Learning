@@ -127,6 +127,46 @@ export async function unenrollFromCourse(slug) {
   return handleResponse(res);
 }
 
+export async function getCourseLessons(slug) {
+  const res = await fetch(`${API_BASE}/course/${slug}/lessons`, {
+    headers: authHeaders(),
+  });
+  return handleResponse(res);
+}
+
+export async function getLesson(slug, lessonId) {
+  const res = await fetch(`${API_BASE}/course/${slug}/lessons/${lessonId}`, {
+    headers: authHeaders(),
+  });
+  return handleResponse(res);
+}
+
+export async function createLesson(slug, payload) {
+  const res = await fetch(`${API_BASE}/course/${slug}/lessons`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
+export async function updateLesson(slug, lessonId, payload) {
+  const res = await fetch(`${API_BASE}/course/${slug}/lessons/${lessonId}`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteLesson(slug, lessonId) {
+  const res = await fetch(`${API_BASE}/course/${slug}/lessons/${lessonId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  return handleResponse(res);
+}
+
 export async function getUser(id) {
   const res = await fetch(`${API_BASE}/user/${id}`, {
     headers: authHeaders(),
