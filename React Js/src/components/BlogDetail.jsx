@@ -11,7 +11,7 @@ function BlogDetail() {
   const { user } = useAuth();
 
   const [blog, setBlog] = useState(null);
-  const [form, setForm] = useState({ title: "", content: "", author: "" });
+  const [form, setForm] = useState({ title: "", content: "" });
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -27,7 +27,6 @@ function BlogDetail() {
         setForm({
           title: data.blog.title,
           content: data.blog.content,
-          author: data.blog.author,
         });
       } catch (err) {
         setError(err.message);
@@ -37,6 +36,13 @@ function BlogDetail() {
     };
     loadBlog();
   }, [id]);
+
+  const isOwner =
+    blog && String(blog.author?._id || blog.author) === String(user?.id);
+  const isAdmin = user?.role === "admin";
+  const canManage = isOwner || isAdmin;
+  const authorLabel =
+    blog?.authorName || blog?.author?.username || "Unknown";
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -50,7 +56,6 @@ function BlogDetail() {
       const data = await updateBlog(id, {
         title: form.title.trim(),
         content: form.content.trim(),
-        author: form.author.trim() || user?.username || "Anonymous",
       });
       setBlog(data.blog);
       setEditing(false);
@@ -81,7 +86,10 @@ function BlogDetail() {
       <Navbar />
       <section className="min-h-[70vh] bg-gray-100 py-10">
         <div className="max-w-3xl mx-auto px-4">
-          <Link to="/" className="text-blue-600 hover:underline mb-6 inline-block">
+          <Link
+            to="/"
+            className="text-blue-600 hover:underline mb-6 inline-block"
+          >
             &larr; Back to Home
           </Link>
 
@@ -94,7 +102,7 @@ function BlogDetail() {
                 {blog.title}
               </h1>
               <p className="text-sm text-gray-500 mb-6">
-                By {blog.author}
+              By {blog.authorName || blog.author?.username || "Unknown"}
                 {blog.createdAt &&
                   ` · ${new Date(blog.createdAt).toLocaleDateString()}`}
               </p>
@@ -102,27 +110,29 @@ function BlogDetail() {
                 {blog.content}
               </p>
 
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEditing(true)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  disabled={saving}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg disabled:opacity-60"
-                >
-                  Delete
-                </button>
-              </div>
+              {canManage && (
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditing(true)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={saving}
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg disabled:opacity-60"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
             </article>
           )}
 
-          {!loading && blog && editing && (
+          {!loading && blog && editing && canManage && (
             <form
               onSubmit={handleUpdate}
               className="bg-white p-6 rounded-xl shadow-lg"
@@ -135,17 +145,6 @@ function BlogDetail() {
               <input
                 name="title"
                 value={form.title}
-                onChange={handleChange}
-                className="w-full border p-2 rounded mb-4"
-                required
-              />
-
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Author
-              </label>
-              <input
-                name="author"
-                value={form.author}
                 onChange={handleChange}
                 className="w-full border p-2 rounded mb-4"
                 required
@@ -178,7 +177,6 @@ function BlogDetail() {
                     setForm({
                       title: blog.title,
                       content: blog.content,
-                      author: blog.author,
                     });
                   }}
                   className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg"

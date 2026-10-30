@@ -16,6 +16,7 @@ function Navbar() {
   const profileRef = useRef(null);
 
   const canCreateCourse = user?.role === "instructor" || user?.role === "admin";
+  const isAdmin = user?.role === "admin";
   const initials = (user?.username || user?.email || "U")
     .slice(0, 1)
     .toUpperCase();
@@ -69,6 +70,11 @@ function Navbar() {
                 Create Course
               </NavLink>
             )}
+            {isAdmin && (
+              <NavLink to="/admin/users" className={linkClass}>
+                Admin
+              </NavLink>
+            )}
           </div>
         )}
 
@@ -119,6 +125,15 @@ function Navbar() {
                   >
                     Profile
                   </Link>
+                  {isAdmin && (
+                    <Link
+                      to="/admin/users"
+                      onClick={closeMenus}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      Admin · Users
+                    </Link>
+                  )}
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -162,6 +177,15 @@ function Navbar() {
               onClick={closeMenus}
             >
               Create Course
+            </NavLink>
+          )}
+          {isAdmin && (
+            <NavLink
+              to="/admin/users"
+              className={linkClass}
+              onClick={closeMenus}
+            >
+              Admin
             </NavLink>
           )}
           <NavLink to="/profile" className={linkClass} onClick={closeMenus}>

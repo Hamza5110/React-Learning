@@ -65,7 +65,7 @@ function Home() {
                 id={blog._id}
                 title={blog.title}
                 body={blog.content}
-                author={blog.author}
+                authorName={blog.authorName || blog.author?.username}
               />
             ))}
           </div>

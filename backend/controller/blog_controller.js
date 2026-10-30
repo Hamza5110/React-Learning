@@ -2,11 +2,11 @@ import Blog from "../models/Blog.js";
 
 const createBlog = async (req, res) => {
   try {
-    const { title, content, author } = req.body;
-    if (!title || !content || !author) {
+    const { title, content } = req.body;
+    if (!title || !content) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const blog = await Blog.create({ title, content, author });
+    const blog = await Blog.create({ title, content, author: req.user.id, authorName: req.user.username });
     res.status(201).json({ success: true, message: "Blog created", blog });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -15,7 +15,7 @@ const createBlog = async (req, res) => {
 
 const getAllBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find();
+    const blogs = await Blog.find().populate("author", "username email");
     res.status(200).json({ success: true, blogs });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -24,7 +24,7 @@ const getAllBlogs = async (req, res) => {
 
 const getBlogById = async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id);
+    const blog = await Blog.findById(req.params.id).populate("author", "username email");
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
@@ -36,15 +36,21 @@ const getBlogById = async (req, res) => {
 
 const updateBlog = async (req, res) => {
   try {
-    const { title, content, author } = req.body;
-    const blog = await Blog.findByIdAndUpdate(
-      req.params.id,
-      { title, content, author },
-      { returnDocument: "after", },
-    );
+    const blog = await Blog.findById(req.params.id);
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
+    const isOwner = String(blog.author) === String(req.user.id);
+    const isAdmin = req.user.role === "admin";
+    if(!isOwner && !isAdmin) {
+      return res.status(403).json({ success: false, message: "You can only edit your own blogs" });
+    }
+
+    const { title, content } = req.body;
+    if(title !== undefined) blog.title = title;
+    if(content !== undefined) blog.content = content;
+    await blog.save();
+
     res.status(200).json({ success: true, message: "Blog updated", blog });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -53,10 +59,18 @@ const updateBlog = async (req, res) => {
 
 const deleteBlog = async (req, res) => {
   try {
-    const blog = await Blog.findByIdAndDelete(req.params.id);
+    const blog = await Blog.findById(req.params.id);
     if (!blog) {
-      return res.status(404).json({ message: "Blog not found" });
+      return res.status(404).json({ success: false, message: "Blog not found" });
     }
+
+    const isOwner = String(blog.author) === String(req.user.id);
+    const isAdmin = req.user.role === "admin";
+    if(!isOwner && !isAdmin) {
+      return res.status(403).json({ success: false, message: "You can only delete your own blogs" });
+    }
+
+    await blog.deleteOne();
     res.status(200).json({ success: true, message: "Blog deleted" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

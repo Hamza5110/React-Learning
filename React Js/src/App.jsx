@@ -5,10 +5,10 @@ import Course from "./components/Course";
 import CreateCourse from "./components/CreateCourse";
 import CourseDetail from "./components/CourseDetail";
 import Signup from "./components/Signup";
-import List from "./components/List";
 import CreateBlog from "./components/CreateBlog";
 import BlogDetail from "./components/BlogDetail";
 import Profile from "./components/Profile";
+import AdminUsers from "./components/AdminUsers";
 import { useAuth } from "./context/AuthContext";
 
 function App() {
@@ -25,7 +25,7 @@ function App() {
           <Route path="/courses/new" element={<CreateCourse />} />
           <Route path="/courses/:slug" element={<CourseDetail />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/list" element={<List />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </>
       ) : (

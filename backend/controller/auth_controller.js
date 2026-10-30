@@ -10,7 +10,7 @@ const signup = async (req, res) => {
         .status(400)
         .json({ success: false, message: "All fields required" });
     }
-    if (role !== "student" && role !== "instructor" && role !== "admin") {
+    if (role !== "student" && role !== "instructor") {
       return res
         .status(400)
         .json({ success: false, message: "Invalid role" });

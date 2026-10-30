@@ -24,7 +24,6 @@ function CreateBlog() {
       await createBlog({
         title: form.title.trim(),
         content: form.content.trim(),
-        author: user?.username || user?.email || "Anonymous",
       });
       navigate("/");
     } catch (err) {
