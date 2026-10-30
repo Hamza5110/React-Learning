@@ -33,8 +33,13 @@ export async function login(payload) {
   return handleResponse(res);
 }
 
-export async function getAllBlogs() {
-  const res = await fetch(`${API_BASE}/blog/all`, { headers: authHeaders() });
+export async function getAllBlogs(params = {}) {
+  const query = new URLSearchParams();
+  if (params.search) query.set("search", params.search);
+  const qs = query.toString();
+  const res = await fetch(`${API_BASE}/blog/all${qs ? `?${qs}` : ""}`, {
+    headers: authHeaders(),
+  });
   return handleResponse(res);
 }
 
@@ -93,8 +98,27 @@ export async function deleteComment(blogId, commentId) {
   return handleResponse(res);
 }
 
-export async function getAllCourses() {
-  const res = await fetch(`${API_BASE}/course`, { headers: authHeaders() });
+export async function getAllCourses(params = {}) {
+  const query = new URLSearchParams();
+  if (params.search) query.set("search", params.search);
+  if (params.minPrice !== undefined && params.minPrice !== "") {
+    query.set("minPrice", params.minPrice);
+  }
+  if (params.maxPrice !== undefined && params.maxPrice !== "") {
+    query.set("maxPrice", params.maxPrice);
+  }
+  if (params.instructor) query.set("instructor", params.instructor);
+  const qs = query.toString();
+  const res = await fetch(`${API_BASE}/course${qs ? `?${qs}` : ""}`, {
+    headers: authHeaders(),
+  });
+  return handleResponse(res);
+}
+
+export async function getCourseInstructors() {
+  const res = await fetch(`${API_BASE}/course/instructors`, {
+    headers: authHeaders(),
+  });
   return handleResponse(res);
 }
 

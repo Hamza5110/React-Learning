@@ -3,6 +3,7 @@ import { protect, authorize } from "../middleware/auth_middleware.js";
 import {
   createCourse,
   getCourses,
+  getCourseInstructors,
   getCourseBySlug,
   getMyCourses,
   updateCourse,
@@ -22,6 +23,7 @@ const router = express.Router();
 
 router.post("/", protect, authorize("instructor", "admin"), createCourse);
 router.get("/", getCourses);
+router.get("/instructors", getCourseInstructors);
 router.get("/my", protect, authorize("student"), getMyCourses);
 
 router.get("/:slug/lessons", protect, getLessonsByCourse);

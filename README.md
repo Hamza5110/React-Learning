@@ -1,6 +1,6 @@
 # Blog Verse
 
-Full-stack learning platform with a React frontend and Express + MongoDB backend. Users can sign up, log in, manage blog posts, browse and enroll in courses, and manage their profile. Access is role-based (`student`, `instructor`, `admin`).
+Full-stack learning platform with a React frontend and Express + MongoDB backend. Users can sign up, log in, manage blog posts and comments, browse and enroll in courses with lessons, search and filter content, and manage their profile. Access is role-based (`student`, `instructor`, `admin`).
 
 ## Tech Stack
 
@@ -22,7 +22,7 @@ blog-verse/
 └── backend/                  # Express API
     ├── controller/
     ├── middleware/           # JWT protect + role authorize
-    ├── models/
+    ├── models/               # User, Blog, Comment, Course, Lesson
     ├── routes/
     ├── scripts/              # One-off migrations
     └── utils/
@@ -78,77 +78,95 @@ App runs at `http://localhost:5173`.
 ## Features
 
 - User signup and login (JWT)
-- Roles: student, instructor, admin
-- Browse, create, view, edit, and delete blog posts
+- Roles: `student`, `instructor`, `admin` (signup allows student/instructor only; set admin in the database)
+- Blog CRUD with author ownership (owner or admin can edit/delete)
+- Blog comments (post comments; delete own; admin can moderate)
+- Search blogs by title
 - Courses with slug URLs
-- Instructors/admins can create and update courses
-- Students can enroll / unenroll
-- Profile page
+- Instructors/admins can create and update courses; admin can delete
+- Course search and filters (title, min/max price, instructor)
+- Course lessons (title, content, video URL, order) — enrolled students, course instructor, or admin can open them
+- Students can enroll / unenroll and view **My Courses**
+- Profile page (update username/email)
+- Admin users page (list and delete users)
 - Protected routes (login required)
 
 ## Frontend Routes
 
-| Path             | Description        | Auth |
-| ---------------- | ------------------ | ---- |
-| `/login`         | Log in             | No   |
-| `/signup`        | Sign up            | No   |
-| `/`              | Home / blogs       | Yes  |
-| `/blogs/new`     | Create blog        | Yes  |
-| `/blogs/:id`     | Blog detail        | Yes  |
-| `/courses`       | Course list        | Yes  |
-| `/courses/new`   | Create course      | Yes  |
-| `/courses/:slug` | Course detail      | Yes  |
-| `/profile`       | User profile       | Yes  |
+| Path                                | Description              | Auth | Notes                          |
+| ----------------------------------- | ------------------------ | ---- | ------------------------------ |
+| `/login`                            | Log in                   | No   |                                |
+| `/signup`                           | Sign up                  | No   |                                |
+| `/`                                 | Home / blogs + search    | Yes  |                                |
+| `/blogs/new`                        | Create blog              | Yes  |                                |
+| `/blogs/:id`                        | Blog detail + comments   | Yes  |                                |
+| `/courses`                          | Course list + filters    | Yes  |                                |
+| `/my-courses`                       | Enrolled courses         | Yes  | Students                       |
+| `/courses/new`                      | Create course            | Yes  | Instructor / admin             |
+| `/courses/:slug`                    | Course detail + lessons  | Yes  |                                |
+| `/courses/:slug/lessons/:lessonId`  | Lesson detail            | Yes  | Enrolled / instructor / admin  |
+| `/profile`                          | User profile             | Yes  |                                |
+| `/admin/users`                      | Manage users             | Yes  | Admin only                     |
 
 ## API Endpoints
 
 ### Auth — `/api/auth`
 
-| Method | Path      | Description |
-| ------ | --------- | ----------- |
-| POST   | `/signup` | Register    |
-| POST   | `/login`  | Log in      |
+| Method | Path      | Description                          |
+| ------ | --------- | ------------------------------------ |
+| POST   | `/signup` | Register (`student` or `instructor`) |
+| POST   | `/login`  | Log in                               |
 
 ### Blogs — `/api/blog`
 
-| Method | Path      | Description    |
-| ------ | --------- | -------------- |
-| GET    | `/all`    | List all blogs |
-| GET    | `/:id`    | Get one blog   |
-| POST   | `/create` | Create a blog  |
-| PUT    | `/:id`    | Update a blog  |
-| DELETE | `/:id`    | Delete a blog  |
+| Method | Path                         | Access        | Description                          |
+| ------ | ---------------------------- | ------------- | ------------------------------------ |
+| GET    | `/all`                       | Public        | List blogs (`?search=` title filter) |
+| GET    | `/:id`                       | Public        | Get one blog                         |
+| POST   | `/create`                    | auth          | Create a blog                        |
+| PUT    | `/:id`                       | owner, admin  | Update a blog                        |
+| DELETE | `/:id`                       | owner, admin  | Delete a blog (+ its comments)       |
+| GET    | `/:id/comments`              | Public        | List comments                        |
+| POST   | `/:id/comments`              | auth          | Add a comment                        |
+| DELETE | `/:id/comments/:commentId`   | owner, admin  | Delete a comment                     |
 
 ### Courses — `/api/course`
 
-| Method | Path             | Access                 | Description        |
-| ------ | ---------------- | ---------------------- | ------------------ |
-| GET    | `/`              | Public                 | List courses       |
-| GET    | `/:slug`         | Public                 | Get course by slug |
-| POST   | `/`              | instructor, admin      | Create course      |
-| PUT    | `/:slug`         | instructor, admin      | Update course      |
-| DELETE | `/:slug`         | admin                  | Delete course      |
-| POST   | `/:slug/enroll`  | student                | Enroll             |
-| POST   | `/:slug/unenroll`| student                | Unenroll           |
+| Method | Path                        | Access                   | Description                                      |
+| ------ | --------------------------- | ------------------------ | ------------------------------------------------ |
+| GET    | `/`                         | Public                   | List courses (`?search=&minPrice=&maxPrice=&instructor=`) |
+| GET    | `/instructors`              | Public                   | Instructors that have courses (for filters)      |
+| GET    | `/my`                       | student                  | Courses the logged-in student is enrolled in     |
+| GET    | `/:slug`                    | Public                   | Get course by slug                               |
+| POST   | `/`                         | instructor, admin        | Create course                                    |
+| PUT    | `/:slug`                    | instructor, admin        | Update course                                    |
+| DELETE | `/:slug`                    | admin                    | Delete course (+ its lessons)                    |
+| POST   | `/:slug/enroll`             | student                  | Enroll                                           |
+| POST   | `/:slug/unenroll`           | student                  | Unenroll                                         |
+| GET    | `/:slug/lessons`            | enrolled / instructor / admin | List lessons                            |
+| GET    | `/:slug/lessons/:lessonId`  | enrolled / instructor / admin | Get one lesson                          |
+| POST   | `/:slug/lessons`            | course instructor, admin | Create lesson                                    |
+| PUT    | `/:slug/lessons/:lessonId`  | course instructor, admin | Update lesson                                    |
+| DELETE | `/:slug/lessons/:lessonId`  | course instructor, admin | Delete lesson                                    |
 
 ### Users — `/api/user`
 
-| Method | Path   | Access | Description     |
-| ------ | ------ | ------ | --------------- |
-| GET    | `/`    | admin  | List all users  |
-| GET    | `/:id` | auth   | Get one user    |
-| PUT    | `/:id` | auth   | Update user     |
-| DELETE | `/:id` | admin  | Delete user     |
+| Method | Path   | Access        | Description              |
+| ------ | ------ | ------------- | ------------------------ |
+| GET    | `/`    | admin         | List all users           |
+| GET    | `/:id` | auth          | Get one user             |
+| PUT    | `/:id` | owner, admin  | Update username / email  |
+| DELETE | `/:id` | admin         | Delete user              |
 
 ## Scripts
 
 **Backend**
 
-| Command               | Description             |
-| --------------------- | ----------------------- |
-| `npm run dev`         | Start with nodemon      |
-| `npm start`           | Start production server |
-| `npm run migrate:slugs` | Backfill course slugs |
+| Command                 | Description             |
+| ----------------------- | ----------------------- |
+| `npm run dev`           | Start with nodemon      |
+| `npm start`             | Start production server |
+| `npm run migrate:slugs` | Backfill course slugs   |
 
 **Frontend**
 

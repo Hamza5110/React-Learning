@@ -14,9 +14,24 @@ const createBlog = async (req, res) => {
   }
 };
 
+const escapeRegex = (value) =>
+  String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const getAllBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find().populate("author", "username email");
+    const { search } = req.query;
+    const filter = {};
+
+    if (search && String(search).trim()) {
+      filter.title = {
+        $regex: escapeRegex(String(search).trim()),
+        $options: "i",
+      };
+    }
+
+    const blogs = await Blog.find(filter)
+      .populate("author", "username email")
+      .sort({ createdAt: -1 });
     res.status(200).json({ success: true, blogs });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

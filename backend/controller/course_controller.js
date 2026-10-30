@@ -31,10 +31,84 @@ export const createCourse = async (req, res) => {
   }
 };
 
+const escapeRegex = (value) =>
+  String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 export const getCourses = async (req, res) => {
   try {
-    const courses = await Course.find().populate("instructor");
+    const { search, minPrice, maxPrice, instructor } = req.query;
+    const filter = {};
+
+    if (search && String(search).trim()) {
+      filter.title = {
+        $regex: escapeRegex(String(search).trim()),
+        $options: "i",
+      };
+    }
+
+    const hasMin = minPrice !== undefined && minPrice !== "";
+    const hasMax = maxPrice !== undefined && maxPrice !== "";
+    if (hasMin || hasMax) {
+      filter.price = {};
+      if (hasMin) {
+        const min = Number(minPrice);
+        if (!Number.isFinite(min)) {
+          return res.status(400).json({
+            success: false,
+            message: "minPrice must be a number",
+          });
+        }
+        filter.price.$gte = min;
+      }
+      if (hasMax) {
+        const max = Number(maxPrice);
+        if (!Number.isFinite(max)) {
+          return res.status(400).json({
+            success: false,
+            message: "maxPrice must be a number",
+          });
+        }
+        filter.price.$lte = max;
+      }
+    }
+
+    if (instructor && String(instructor).trim()) {
+      filter.instructor = String(instructor).trim();
+    }
+
+    const courses = await Course.find(filter)
+      .populate("instructor", "username email role")
+      .sort({ createdAt: -1 });
     res.status(200).json({ success: true, courses });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getCourseInstructors = async (req, res) => {
+  try {
+    const courses = await Course.find()
+      .populate("instructor", "username email")
+      .select("instructor");
+
+    const byId = new Map();
+    for (const course of courses) {
+      const instructor = course.instructor;
+      if (instructor?._id) {
+        byId.set(String(instructor._id), {
+          id: instructor._id,
+          username: instructor.username,
+          email: instructor.email,
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      instructors: Array.from(byId.values()).sort((a, b) =>
+        String(a.username).localeCompare(String(b.username)),
+      ),
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -173,6 +247,7 @@ export const unenrollFromCourse = async (req, res) => {
 export default {
   createCourse,
   getCourses,
+  getCourseInstructors,
   getCourseBySlug,
   getMyCourses,
   updateCourse,
