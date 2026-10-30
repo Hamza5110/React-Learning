@@ -239,6 +239,15 @@ export async function updateUser(id, payload) {
   return handleResponse(res);
 }
 
+export async function changePassword(id, payload) {
+  const res = await fetch(`${API_BASE}/user/${id}/password`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
 export async function deleteUser(id) {
   const res = await fetch(`${API_BASE}/user/${id}`, {
     method: "DELETE",

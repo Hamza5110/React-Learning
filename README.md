@@ -88,6 +88,7 @@ App runs at `http://localhost:5173`.
 - Course lessons (title, content, video URL, order) — enrolled students, course instructor, or admin can open them
 - Students can enroll / unenroll and view **My Courses**
 - Profile page (update username/email)
+- Change password on Profile (verify current password, bcrypt hash)
 - Admin users page (list and delete users)
 - Protected routes (login required)
 
@@ -105,7 +106,7 @@ App runs at `http://localhost:5173`.
 | `/courses/new`                      | Create course            | Yes  | Instructor / admin             |
 | `/courses/:slug`                    | Course detail + lessons  | Yes  |                                |
 | `/courses/:slug/lessons/:lessonId`  | Lesson detail            | Yes  | Enrolled / instructor / admin  |
-| `/profile`                          | User profile             | Yes  |                                |
+| `/profile`                          | Profile + change password| Yes  |                                |
 | `/admin/users`                      | Manage users             | Yes  | Admin only                     |
 
 ## API Endpoints
@@ -151,12 +152,13 @@ App runs at `http://localhost:5173`.
 
 ### Users — `/api/user`
 
-| Method | Path   | Access        | Description              |
-| ------ | ------ | ------------- | ------------------------ |
-| GET    | `/`    | admin         | List all users           |
-| GET    | `/:id` | auth          | Get one user             |
-| PUT    | `/:id` | owner, admin  | Update username / email  |
-| DELETE | `/:id` | admin         | Delete user              |
+| Method | Path            | Access        | Description                                      |
+| ------ | --------------- | ------------- | ------------------------------------------------ |
+| GET    | `/`             | admin         | List all users                                   |
+| GET    | `/:id`          | auth          | Get one user                                     |
+| PUT    | `/:id`          | owner, admin  | Update username / email                          |
+| PUT    | `/:id/password` | owner         | Change password (`currentPassword`, `newPassword`) |
+| DELETE | `/:id`          | admin         | Delete user                                      |
 
 ## Scripts
 
