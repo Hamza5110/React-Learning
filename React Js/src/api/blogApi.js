@@ -71,6 +71,13 @@ export async function getAllCourses() {
   return handleResponse(res);
 }
 
+export async function getMyCourses() {
+  const res = await fetch(`${API_BASE}/course/my`, {
+    headers: authHeaders(),
+  });
+  return handleResponse(res);
+}
+
 export async function getCourseBySlug(slug) {
   const res = await fetch(`${API_BASE}/course/${slug}`, {
     headers: authHeaders(),

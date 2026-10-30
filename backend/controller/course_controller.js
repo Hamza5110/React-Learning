@@ -55,6 +55,18 @@ export const getCourseBySlug = async (req, res) => {
   }
 };
 
+export const getMyCourses = async (req, res) => {
+  try {
+    const courses = await Course.find({ students: req.user._id }).populate(
+      "instructor",
+      "username email",
+    );
+    res.status(200).json({ success: true, courses });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const updateCourse = async (req, res) => {
   try {
     const course = await findCourseBySlug(req.params.slug);
@@ -160,6 +172,7 @@ export default {
   createCourse,
   getCourses,
   getCourseBySlug,
+  getMyCourses,
   updateCourse,
   deleteCourse,
   enrollInCourse,

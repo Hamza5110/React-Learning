@@ -2,6 +2,7 @@
 import Home from "./components/Home";
 import Login from "./components/Login";
 import Course from "./components/Course";
+import MyCourses from "./components/MyCourses";
 import CreateCourse from "./components/CreateCourse";
 import CourseDetail from "./components/CourseDetail";
 import Signup from "./components/Signup";
@@ -22,6 +23,7 @@ function App() {
           <Route path="/blogs/new" element={<CreateBlog />} />
           <Route path="/blogs/:id" element={<BlogDetail />} />
           <Route path="/courses" element={<Course />} />
+          <Route path="/my-courses" element={<MyCourses />} />
           <Route path="/courses/new" element={<CreateCourse />} />
           <Route path="/courses/:slug" element={<CourseDetail />} />
           <Route path="/profile" element={<Profile />} />

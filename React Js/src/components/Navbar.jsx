@@ -17,6 +17,7 @@ function Navbar() {
 
   const canCreateCourse = user?.role === "instructor" || user?.role === "admin";
   const isAdmin = user?.role === "admin";
+  const isStudent = user?.role === "student";
   const initials = (user?.username || user?.email || "U")
     .slice(0, 1)
     .toUpperCase();
@@ -62,6 +63,11 @@ function Navbar() {
             <NavLink to="/courses" className={linkClass}>
               Courses
             </NavLink>
+            {isStudent && (
+              <NavLink to="/my-courses" className={linkClass}>
+                My Courses
+              </NavLink>
+            )}
             <NavLink to="/blogs/new" className={linkClass}>
               Create Blog
             </NavLink>
@@ -125,6 +131,15 @@ function Navbar() {
                   >
                     Profile
                   </Link>
+                  {isStudent && (
+                    <Link
+                      to="/my-courses"
+                      onClick={closeMenus}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      My Courses
+                    </Link>
+                  )}
                   {isAdmin && (
                     <Link
                       to="/admin/users"
@@ -167,6 +182,15 @@ function Navbar() {
           <NavLink to="/courses" className={linkClass} onClick={closeMenus}>
             Courses
           </NavLink>
+          {isStudent && (
+            <NavLink
+              to="/my-courses"
+              className={linkClass}
+              onClick={closeMenus}
+            >
+              My Courses
+            </NavLink>
+          )}
           <NavLink to="/blogs/new" className={linkClass} onClick={closeMenus}>
             Create Blog
           </NavLink>

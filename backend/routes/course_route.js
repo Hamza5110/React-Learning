@@ -4,6 +4,7 @@ import {
   createCourse,
   getCourses,
   getCourseBySlug,
+  getMyCourses,
   updateCourse,
   deleteCourse,
   enrollInCourse,
@@ -14,6 +15,7 @@ const router = express.Router();
 
 router.post("/", protect, authorize("instructor", "admin"), createCourse);
 router.get("/", getCourses);
+router.get("/my", protect, authorize("student"), getMyCourses);
 router.get("/:slug", getCourseBySlug);
 router.put("/:slug", protect, authorize("instructor", "admin"), updateCourse);
 router.delete("/:slug", protect, authorize("admin"), deleteCourse);
