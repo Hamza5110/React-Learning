@@ -84,6 +84,55 @@ const updateUser = async (req, res) => {
   }
 };
 
+const updateUserRole = async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (role !== "student" && role !== "instructor") {
+      return res.status(400).json({
+        success: false,
+        message: "Role must be student or instructor",
+      });
+    }
+
+    if (String(req.user._id) === String(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot change your own role",
+      });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    if (user.role === "admin") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot change an admin user's role from this endpoint",
+      });
+    }
+
+    user.role = role;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Role updated to ${role}`,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 const changePassword = async (req, res) => {
   try {
     const isOwner = String(req.user._id) === String(req.params.id);
@@ -160,4 +209,11 @@ const deleteUser = async (req, res) => {
   }
 };
 
-export { getAllUsers, getUser, updateUser, changePassword, deleteUser };
+export {
+  getAllUsers,
+  getUser,
+  updateUser,
+  updateUserRole,
+  changePassword,
+  deleteUser,
+};

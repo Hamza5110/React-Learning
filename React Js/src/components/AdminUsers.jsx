@@ -3,13 +3,14 @@ import { Link, Navigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useAuth } from "../context/AuthContext";
-import { deleteUser, getAllUsers } from "../api/blogApi";
+import { deleteUser, getAllUsers, updateUserRole } from "../api/blogApi";
 
 function AdminUsers() {
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
+  const [updatingRoleId, setUpdatingRoleId] = useState(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -35,6 +36,30 @@ function AdminUsers() {
   if (user?.role !== "admin") {
     return <Navigate to="/" replace />;
   }
+
+  const handleRoleChange = async (target, nextRole) => {
+    const id = target._id || target.id;
+    if (!id || nextRole === target.role) return;
+
+    setUpdatingRoleId(id);
+    setError("");
+    setMessage("");
+    try {
+      const data = await updateUserRole(id, nextRole);
+      setUsers((prev) =>
+        prev.map((u) => {
+          const rowId = u._id || u.id;
+          if (String(rowId) !== String(id)) return u;
+          return { ...u, role: data.user?.role || nextRole };
+        }),
+      );
+      setMessage(data.message || `Role updated to ${nextRole}`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUpdatingRoleId(null);
+    }
+  };
 
   const handleDelete = async (target) => {
     const id = target._id || target.id;
@@ -87,7 +112,7 @@ function AdminUsers() {
 
           {!loading && users.length > 0 && (
             <div className="bg-white rounded-xl shadow-lg overflow-x-auto">
-              <table className="w-full text-left min-w-[560px]">
+              <table className="w-full text-left min-w-[640px]">
                 <thead className="border-b border-gray-100 bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-sm font-semibold text-gray-700">
@@ -108,6 +133,9 @@ function AdminUsers() {
                   {users.map((row) => {
                     const id = row._id || row.id;
                     const isSelf = String(id) === String(user.id);
+                    const isTargetAdmin = row.role === "admin";
+                    const canChangeRole = !isSelf && !isTargetAdmin;
+
                     return (
                       <tr
                         key={id}
@@ -125,9 +153,28 @@ function AdminUsers() {
                           {row.email}
                         </td>
                         <td className="px-4 py-3">
-                          <span className="inline-block text-xs capitalize bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
-                            {row.role}
-                          </span>
+                          {canChangeRole ? (
+                            <select
+                              value={row.role}
+                              disabled={updatingRoleId === id}
+                              onChange={(e) =>
+                                handleRoleChange(row, e.target.value)
+                              }
+                              className="border border-gray-200 rounded px-2 py-1 text-sm capitalize"
+                            >
+                              <option value="student">student</option>
+                              <option value="instructor">instructor</option>
+                            </select>
+                          ) : (
+                            <span className="inline-block text-xs capitalize bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
+                              {row.role}
+                            </span>
+                          )}
+                          {updatingRoleId === id && (
+                            <span className="ml-2 text-xs text-gray-400">
+                              Saving...
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <button

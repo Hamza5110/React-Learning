@@ -248,6 +248,15 @@ export async function changePassword(id, payload) {
   return handleResponse(res);
 }
 
+export async function updateUserRole(id, role) {
+  const res = await fetch(`${API_BASE}/user/${id}/role`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify({ role }),
+  });
+  return handleResponse(res);
+}
+
 export async function deleteUser(id) {
   const res = await fetch(`${API_BASE}/user/${id}`, {
     method: "DELETE",
